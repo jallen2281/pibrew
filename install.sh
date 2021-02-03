@@ -6,5 +6,7 @@ tar -xvf node-v14.15.4-linux-armv7l.tar.xz
 cd node-v14.15.4-linux-armv7l
 cp -R * /usr/local/
 
+sudo usermod -a -G gpio pi
+
 npm install 
 npm install sqlite3 express express-es6-template-engine ds18b20-raspi pigpio

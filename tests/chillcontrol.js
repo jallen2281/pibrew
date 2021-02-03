@@ -40,7 +40,7 @@ async function checkTemp(id,run){
 	let upper=50.1;
 	let offset=+5;
 	
-//	const pump=new Gpio(12,{mode:Gpio.OUTPUT});
+	const pump=new Gpio(12,{mode:Gpio.OUTPUT});
 	let temp=await readTemp(id);
 
 	temp=temp+offset;
@@ -50,11 +50,13 @@ async function checkTemp(id,run){
 		if(run==1){
 			console.log("Stop Pump");
 			run=0;
+			pump.pwmWrite(0);
 		}
 	}else if(temp > upper){
 		if(run==0){
 			console.log("Start Pump");
 			run=1;
+			pump.pwmWrite(255);
 		}
 	}
 	console.log("Wort:"+temp);
@@ -83,7 +85,7 @@ console.log("Temp"+checkTemp('28-0120189f896d'));
 //const returned
 
 
-//const Gpio = require('pigpio').Gpio;
+const Gpio = require('pigpio').Gpio;
 
 //const pump = new Gpio(12, {mode: Gpio.OUTPUT});
 //console.log(pump.getPwmRange());
