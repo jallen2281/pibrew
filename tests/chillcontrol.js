@@ -34,14 +34,29 @@ async function readTemp(id){
 	});
 }
 
-async function checkTemp(id,run){
+async function checkTemp(id,run,pump){
 //return new Promise(run=>{
-	let lower=49.5;
-	let upper=50.1;
+	let lower=59.5;
+	let upper=60.5;
 	let offset=+5;
 	
-	const pump=new Gpio(12,{mode:Gpio.OUTPUT});
-	let temp=await readTemp(id);
+//	let pump=new Gpio(12,{mode:Gpio.OUTPUT});
+	
+//	)then((yup) => {
+		//pump=pump
+//		console.log("Success");
+//	}).catch((err)=>{
+//		console.log(err);
+//	});
+		
+
+	let temp;
+	await readTemp(id).then((resolve)=>{
+		temp=resolve;
+	}).catch((err) =>{
+		console.log(err);
+	});
+	
 
 	temp=temp+offset;
 //	console.log(pump.getPwmRange());
@@ -72,25 +87,19 @@ async function checkTempTwo(id){
 	return temp;
 }
 
+
+const Gpio = require('pigpio').Gpio;
+const pump=new Gpio(12, {mode:Gpio.OUTPUT});
+pump.pwmWrite(0);
+
 let run=0;
 setInterval(()=>{
-	checkTemp('28-0119356e302a',run).then(result=>{
+	checkTemp('28-0119356e302a',run,pump).then(result=>{
 		run=result;
 		console.log("Run:"+run);
 	});
 	checkTempTwo('28-0120189f896d');
 },5000);
 
-console.log("Temp"+checkTemp('28-0120189f896d'));
-//const returned
-
-
-const Gpio = require('pigpio').Gpio;
-
-//const pump = new Gpio(12, {mode: Gpio.OUTPUT});
-//console.log(pump.getPwmRange());
-
-
-//pump.pwmWrite(0);
-////pump.pwmWrite(255);
+//console.log("Temp"+checkTemp('28-0120189f896d'));
 
