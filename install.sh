@@ -1,10 +1,10 @@
-url -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-apt-get install pigpio-tools pigpio pigpiod nodejs
+sudo apt-get install pigpio-tools pigpio pigpiod
 
-wget latest nodejs;
+wget latest https://nodejs.org/dist/v14.15.4/node-v14.15.4-linux-armv7l.tar.xz;
 tar -xvf node-v14.15.4-linux-armv7l.tar.xz
 cd node-v14.15.4-linux-armv7l
-cp -R * /usr/local/
+sudo cp -R * /usr/local/
+cd ..
 
 sudo usermod -a -G gpio pi
 

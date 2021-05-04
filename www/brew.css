@@ -1,0 +1,14 @@
+button.off{
+    background-color:red;
+}
+button.on{
+    background-color:green;
+}
+input.off{
+    -webkit-appearance: none; 
+    background:red;
+}
+input.on{
+    -webkit-appearance: none; 
+    background:green;
+}

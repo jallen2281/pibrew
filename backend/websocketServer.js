@@ -20,14 +20,41 @@ wsServer.on('request', function(request) {
   // This is the most important callback for us, we'll handle
   // all messages from users here.
   connection.on('message', function(message) {
-    if (message.type === 'utf8') {
+    //if (message.type === 'utf8') {
       // process WebSocket message
-	console.log("Received:"+message);
-	    connection.send("Back at ya!");
-    }
+      
+      console.log(message.utf8Data);
+      try{
+        message=JSON.parse(message.utf8Data);
+      }catch(string){
+        console.log(string);
+      }
+	    
+      console.log(message);
+	    connection.send("connected");
+    //}
   });
+  
+  const sensor = require('ds18b20-raspi');
+  
+  //clean up on connection close
+  var tempInterval=setInterval(()=>{
+    sensor.readAllF((err, temps) => {
+      if (err) {
+          console.log(err);
+      } else {
+          //temps['type']='temp';//gets lost when calling json.stringify. That uses it's own method.
+          //console.log(temps);
+          //console.log(JSON.stringify({'type':'temp',temps}));
+          connection.send(JSON.stringify({'type':'temp',temps}));
+      }
+  });
+    
+  },5000);
 
   connection.on('close', function(connection) {
+    console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+    clearInterval(tempInterval);
     // close user connection
   });
 });
@@ -37,15 +64,15 @@ const app = express()
 const port = 8080 
 const path=require('path');
 
-app.use('/', express.static(__dirname + '/../frontend/'));
-
-//app.get('/', (req, res) => {
-//	res.send("Helo World");
+app.use('/', express.static(__dirname + '/../www/'));
+/*
+app.get('/', (req, res) => {
+	res.send("Helo World");
 //	res.sendFile(path.join(__dirname + '/../frontend/','frontend','index.html'));
-//})
-
+})
+*/
 
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+  console.log(`Example app listening at ${port}`)
 })
