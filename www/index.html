@@ -1,107 +1,121 @@
 <head>
     <link rel="stylesheet" href="brew.css">
     <script>
-    var retryInterval;
-    var socket;
+        var retryInterval;
+        var socket;
 
-    function connect(){
-        socket = new WebSocket('ws://192.168.86.32:8081');
+        function connect() {
+            socket = new WebSocket('ws://192.168.86.32:8081');
             socket.addEventListener('open', function (event) {
-            socket.send('Hello Server!');
-        });
-        
-    socket.onclose=(e)=>{
-        console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
-        retryInterval=setTimeout(function() {
+                socket.send('Hello Server!');
+            });
+
+            socket.onclose = (e) => {
+                console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+                retryInterval = setTimeout(function () {
+                    connect();
+                }, 1000);
+            }
+
+
+
+            socket.addEventListener('message', function (event) {
+                try {
+                    data = JSON.parse(event.data)
+                    //console.log(data);
+                    if (data.type.match(/temp/i)) {
+                        delete data.type;
+                        //console.log(data.temps);
+                        populate('tempData', data.temps);
+                    }
+                } catch (string) {
+                    if (event.data.match(/connected/i)) {
+                        clearInterval(retryInterval);
+                    }
+                    console.log(event.data);
+                }
+            });
+        }
+        //Initilize listener service
+
         connect();
-        }, 1000); 
-    }
-
-
-
-socket.addEventListener('message', function (event) {
-    try{
-        data=JSON.parse(event.data)
-        //console.log(data);
-        if(data.type.match(/temp/i)){
-            delete data.type;
-            //console.log(data.temps);
-            populate('tempData',data.temps);
+        function populate(devId, data) {
+            console.log(data);
+            document.getElementById(devId).innerHTML = "";
+            for (var i = 0; i < data.length; i++) {
+                console.log(data[i]);
+                document.getElementById(devId).innerHTML += data[i]['id'] + "::" + data[i]['t'] + "<br>";
+            }
         }
-    }catch(string){
-        if(event.data.match(/connected/i)){
-            clearInterval(retryInterval);
+
+        //populate pump controls from database/backend valuse
+        function popPumpControl(data) {
+            for (var i = 0; i < data.length; i++) {
+                //uid from database
+                //get active value of pump
+            }
         }
-        console.log(event.data);
-    }
-});
-    }
-    //Initilize listener service
 
-    connect();
-function populate(devId,data){
-    console.log(data);
-    document.getElementById(devId).innerHTML="";
-        for(var i =0; i<data.length; i++){
-            console.log(data[i]);
-            document.getElementById(devId).innerHTML+=data[i]['id'] +"::"+data[i]['t']+"<br>";
+        function pumpControl(type, id) {
+            //id is pump gpio
+            var event;
+            slider = document.getElementById("pumpslider" + id);
+            button = document.getElementById("pumpbutton" + id);
+            
+            if (type == 'button' && button.value == 1) {
+                button.value = 0;
+            } else if(type=='button' && button.value == 0) {
+                button.value = 1;
+            }
+
+            if (button.value == 1) {
+                pumpstate = "on";
+                button.className = 'on';
+                slider.className = 'on';
+            } else {
+                pumpstate = "off";
+                button.className = 'off';
+                slider.className = 'off';
+            }
+
+
+            event = {
+                'actor': 'pumpctl',
+                'pumpId': id,
+                'state': pumpstate,
+                'flow': slider.value
+            }
+                ;
+
+
+
+            if (event !== undefined) {
+                console.log(JSON.stringify(event));
+                socket.send(JSON.stringify(event));
+
+            }
+
+            //    runVal.innerHTML=slider.value;
+            //get element ID value slider or quick action buttons?
+            //send change to backend
+            //socket.send('Hello Server!');
         }
-}
-
-//populate pump controls from database/backend valuse
-function popPumpControl(data){
-    for(var i=0;i<data.length; i++){
-        //uid from database
-        //get active value of pump
-    }
-}
-
-function pumpControl(type,id){
-    var change;
-    slider=document.getElementById("pumpslider"+id);
-    button=document.getElementById("pumpbutton"+id);
-    runVal=document.getElementById("runVal"+id)
-    pumpId=document.getElementById('pumpId'+id).value;
-    if(type=='slider'||type=='button'){
-        change=document.getElementById("pump"+type+id).value;
-    }
-console.log(change+type);
-var event;
-    if(type.match(/button/i) && change=='1'){
-        button.className='off';
-        button.value='0';
-        slider.className='off';
-    }else if(type.match(/button/i) && change=='0'){
-        button.className='on';
-        button.value='1';
-        slider.className='on';
-        event=[
-            {'actor':'pumpctl'},
-            {'pumpId':pumpId},
-            {'state':"on"},
-            {'flow':slider.value}
-        ];
-        console.log(JSON.stringify(event));
-        socket.send(JSON.stringify(event));
-    }
-        runVal.innerHTML=slider.value;
-    //get element ID value slider or quick action buttons?
-    //send change to backend
-    //socket.send('Hello Server!');
-}
 
     </script>
+    <!-- make mobile freindly-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
+    Brew some things!<br>
     Temperatures:<br>
-    <dev id='tempData'></dev>
-    <dev id='pumpContol'>
-        <dev>
-        <dev id=pumpId1 value=1>Pump ID#ID</dev>
-        <dev id=runVal1></dev>
-        <input id=pumpslider1 type="range" class="off" onchange="pumpControl('slider','1');" >
-        <button id=pumpbutton1 value='0' class="off" onclick="pumpControl('button','1');">On/Off</button> 
-        </dev>
-    </dev>
+    <div id='tempData'></div>
+    <!--Pump control ending number is gpio port to be controlled-->
+    <div id='pumpContol2'>
+        <div>
+            <div id=pumpId12>Pump ID# 12</div>
+            <input id=pumpslider12 type="range" class="off" onchange="pumpControl('slider','12');">
+            <button id=pumpbutton12 class="off" onclick="pumpControl('button','12');">On/Off</button>
+        </div>
+    </div>
 </body>
